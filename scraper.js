@@ -38,46 +38,43 @@ async function scrapeShow(url){
     const seasonLength = await seasonDropdown.$$('option');
     const seasonLengthText = await (seasonLength.length).toString();
 
-    // get the link to the first season
-    const currentUrl = await page.url();
-    const forwardSlash = currentUrl.indexOf("/", 27);
-    const clearURL = currentUrl.slice(0, (forwardSlash + 1));
-    const currentSeason = clearURL + 'episodes?season=1';
-
-    // go to the first season
-    await page.goto(currentSeason);
-
-    // get the current season number
-    const [seasonNumber] = await page.$x('//*[@id="episode_top"]');
-    const number = await seasonNumber.getProperty('textContent');
-    const currentSeasonText = await number.jsonValue();
-    
-    // get all the episodes and their names
-    const [episodeList] = await page.$x('//*[@id="episodes_content"]/div[2]/div[2]');
-    const episodes = await episodeList.$$('.list_item');
-    const episodesArray = [];
-    for (let i = 0; i < episodes.length; i++) {
-        const [episodeName] = await episodes[i].$$('a[itemprop="name"]');
-        const name = await episodeName.getProperty('textContent');
-        const nameText = await name.jsonValue();
-        episodesArray.push(nameText);
-    }
-    
-
     console.log({
         titleText,
         typeText,
         seasonLengthText, 
-        episodeLengthText, 
-        // linkText, 
-        currentSeasonText, 
-        // currentUrl, 
-        // forwardSlash,
-        // clearURL,
-        episodesArray,
+        episodeLengthText
     });
+
+    for(let i = 0; i < seasonLength.length; i++){
+
+        // get the link to the first season
+        const currentUrl = await page.url();
+        const forwardSlash = currentUrl.indexOf("/", 27);
+        const clearURL = currentUrl.slice(0, (forwardSlash + 1));
+        const currentSeason = clearURL + `episodes?season=${i+1}`;
+    
+        // go to the first season
+        await page.goto(currentSeason);
+    
+        // get the current season number
+        const [seasonNumber] = await page.$x('//*[@id="episode_top"]');
+        const number = await seasonNumber.getProperty('textContent');
+        const currentSeasonText = await number.jsonValue();
+        
+        // get all the episodes and their names
+        const [episodeList] = await page.$x('//*[@id="episodes_content"]/div[2]/div[2]');
+        const episodes = await episodeList.$$('.list_item');
+        const episodesArray = [];
+        for (let i = 0; i < episodes.length; i++) {
+            const [episodeName] = await episodes[i].$$('a[itemprop="name"]');
+            const name = await episodeName.getProperty('textContent');
+            const nameText = await name.jsonValue();
+            episodesArray.push(nameText);
+        }
+        console.log({currentSeasonText, episodesArray});
+    }
 
     await browser.close();
 }
 
-scrapeShow('https://www.imdb.com/title/tt0278238/?ref_=ttep_ep_tt');
+scrapeShow(''); // <-- imdb show link goes here
